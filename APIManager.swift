@@ -125,3 +125,43 @@ class APIManager: NSObject {
        }
     
 }
+
+
+
+
+//Call EX
+
+ func getData(){
+           
+           if Connectivity.isConnectedToInternet {
+               SVProgressHUD.show()
+            authHeaders.add(name: GlobalKeys.Authorization, value: UserDefaults.standard.getLoginToken())
+            APIManager.sharedInstance.requestPOSTURL(BASEURL + EndPoints.getData, params:["Key":"Value"], headers:authHeaders) { (JSONRes) in
+                           SVProgressHUD.dismiss()
+                               let resResult = JSONRes.dictionaryObject! as NSDictionary
+                               print(resResult)
+                           let resCode = JSONRes["code"]
+                           if(resCode == 0){
+                            let resData =  resResult.value(forKey: "data") as! Array<Any>
+                               self.arrFIATS = resData
+                            self.clViewAc.reloadData()
+                           }else if (resCode == 2){
+                            
+                            self.logoutAndRedirectUser()
+                        }else{
+                               let apiMsg = JSONRes["message"].stringValue
+                               self.showAlertMessage(titleStr: AppMsg.AlertTitle, messageStr: apiMsg)
+                           }
+               } failure: { (Error) in
+                   print(Error)
+                   SVProgressHUD.dismiss()
+               }
+
+
+           }else{
+               SVProgressHUD.dismiss()
+               showAlertMessage(titleStr: AppMsg.AlertTitle, messageStr: AppMsg.alertNoInternet)
+           }
+           
+       }
+    
